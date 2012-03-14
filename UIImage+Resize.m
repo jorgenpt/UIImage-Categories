@@ -115,14 +115,28 @@
     CGRect transposedRect = CGRectMake(0, 0, newRect.size.height, newRect.size.width);
     CGImageRef imageRef = self.CGImage;
 
+    CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(imageRef);
+    CGColorSpaceRef colorSpace = CGImageGetColorSpace(imageRef);
+
+    // CGBitmapContextCreate doesn't support kCGImageAlphaNone with RGB.
+    // https://developer.apple.com/library/mac/#qa/qa1037/_index.html
+    if ((bitmapInfo & kCGBitmapAlphaInfoMask) == kCGImageAlphaNone && CGColorSpaceGetNumberOfComponents(colorSpace) > 1)
+    {
+        // Unset the old alpha info.
+        bitmapInfo &= ~kCGBitmapAlphaInfoMask;
+
+        // Set noneSkipFirst.
+        bitmapInfo |= kCGImageAlphaNoneSkipFirst;
+    }
+
     // Build a context that's the same dimensions as the new size
     CGContextRef bitmap = CGBitmapContextCreate(NULL,
                                                 newRect.size.width,
                                                 newRect.size.height,
                                                 CGImageGetBitsPerComponent(imageRef),
                                                 0,
-                                                CGImageGetColorSpace(imageRef),
-                                                CGImageGetBitmapInfo(imageRef));
+                                                colorSpace,
+                                                bitmapInfo);
 
     // Rotate and/or flip the image if required by its orientation
     CGContextConcatCTM(bitmap, transform);
