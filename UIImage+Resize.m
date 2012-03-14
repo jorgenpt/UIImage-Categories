@@ -138,6 +138,10 @@
                                                 colorSpace,
                                                 bitmapInfo);
 
+    // In case an error occcured.
+    if (!bitmap)
+        return nil;
+
     // Rotate and/or flip the image if required by its orientation
     CGContextConcatCTM(bitmap, transform);
 
@@ -149,6 +153,14 @@
 
     // Get the resized image from the context and a UIImage
     CGImageRef newImageRef = CGBitmapContextCreateImage(bitmap);
+
+    // Check for errors.
+    if (!newImageRef)
+    {
+      CGContextRelease(bitmap);
+      return nil;
+    }
+
     UIImage *newImage = [UIImage imageWithCGImage:newImageRef];
 
     // Clean up
