@@ -128,6 +128,16 @@
         // Set noneSkipFirst.
         bitmapInfo |= kCGImageAlphaNoneSkipFirst;
     }
+    // Some PNGs tell us they have alpha but only 3 components. Odd.
+    else if (((bitmapInfo & kCGBitmapAlphaInfoMask) & (kCGImageAlphaFirst | kCGImageAlphaLast)) != 0
+             && CGColorSpaceGetNumberOfComponents(colorSpace) == 3)
+    {
+        // Unset the old alpha info.
+        bitmapInfo &= ~kCGBitmapAlphaInfoMask;
+
+        // Set noneSkipFirst.
+        bitmapInfo |= kCGImageAlphaNoneSkipFirst;
+    }
 
     // Build a context that's the same dimensions as the new size
     CGContextRef bitmap = CGBitmapContextCreate(NULL,
